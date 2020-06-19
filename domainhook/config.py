@@ -22,6 +22,11 @@ Rotated key at registrar for {domain}. New key:
 {domain} IN DS {keytag} {algorithm} {digest_type} {digest}
 '''
 
+# rdap sources
+rdap_sources = {
+    '_': 'rdap.org',
+}
+
 # dnsimple integration
 dnsimple_token = '0123456789abcdefghijklmnopqrstuv'
 dnsimple_webhook = 'dnsimple'

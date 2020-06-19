@@ -5,12 +5,6 @@ import httpx
 from domainhook import config
 
 
-rdap_sources = {
-    'io': 'rdap.gandi.net',
-    '_': 'rdap.org',
-}
-
-
 log = logging.getLogger('domainhook')
 
 
@@ -38,7 +32,7 @@ def perform_cdscheck(domain):
     cdscheck = None
     rdaps = []
 
-    rdap_source = rdap_sources.get(domain.rpartition('.')[2], rdap_sources['_'])
+    rdap_source = config.rdap_sources.get(domain.rpartition('.')[2], config.rdap_sources['_'])
 
     response = httpx.get(f'https://{rdap_source}/domain/{domain}')
     if response.status_code == 404:
