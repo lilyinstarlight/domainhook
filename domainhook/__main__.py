@@ -83,11 +83,11 @@ def main():
         logging.getLogger('http').addHandler(http_log_handler)
 
 
-    from domainhook import name, version
+    from domainhook import __version__
     from domainhook import http
 
 
-    log.info(name + ' ' + version + ' starting...')
+    log.info('domainhook ' + __version__ + ' starting...')
 
     # start everything
     http.start()
