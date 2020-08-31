@@ -36,6 +36,12 @@ def main():
     config_loaded = importlib.util.module_from_spec(config_spec)
     config_spec.loader.exec_module(config_loaded)
 
+    config.base = config_loaded.base
+    if not config.base.startswith('/'):
+        config.base = '/' + config.base
+    if not config.base.endswith('/'):
+        config.base = config.base + '/'
+
     if hasattr(config_loaded, 'smtp_tls'):
         config.smtp_tls = config_loaded.smtp_tls
     if hasattr(config_loaded, 'smtp_host'):

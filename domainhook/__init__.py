@@ -1,2 +1,3 @@
-name = 'domainhook'
-version = '0.1a2'
+__version__ = '0.1a3'
+
+__all__ = []

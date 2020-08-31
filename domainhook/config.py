@@ -5,6 +5,9 @@ addr = ('', 8000)
 log = '/var/log/domainhook/domainhook.log'
 http_log = '/var/log/domainhook/http.log'
 
+# URL base path
+base = '/'
+
 # notification
 smtp_tls = None  # None, 'starttls', 'tls'
 smtp_host = 'localhost'

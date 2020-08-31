@@ -45,7 +45,7 @@ class DNSimpleWebhook(fooster.web.json.JSONHandler):
         return 200, None
 
 
-routes.update({'/' + config.dnsimple_webhook: DNSimpleWebhook})
+routes.update({config.base + config.dnsimple_webhook: DNSimpleWebhook})
 error_routes.update(fooster.web.json.new_error())
 
 
