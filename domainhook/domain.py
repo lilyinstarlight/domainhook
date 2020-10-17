@@ -1,11 +1,6 @@
-import logging
-
 import httpx
 
 from domainhook import config
-
-
-log = logging.getLogger('domainhook')
 
 
 def get_domain(account_id, domain_id):
@@ -16,14 +11,11 @@ def get_domain(account_id, domain_id):
     response = httpx.get(f'https://api.dnsimple.com/v2/{account_id}/domains/{domain_id}', headers=headers)
 
     if response.status_code == 401:
-        log.error(f'Authorization failed for domain {domain_id} on account {account_id}')
-        raise ValueError()
+        raise ValueError(f'Authorization failed for domain {domain_id} on account {account_id}')
     elif response.status_code == 404:
-        log.error(f'Domain {domain_id} on account {account_id} not found')
-        raise KeyError()
+        raise KeyError(f'Domain {domain_id} on account {account_id} not found')
     elif response.status_code != 200:
-        log.error(f'Unexpected status code {response.status_code} for domain {domain_id} on account {account_id}')
-        raise RuntimeError()
+        raise RuntimeError(f'Unexpected status code {response.status_code} for domain {domain_id} on account {account_id}')
 
     return response.json()['data']['name']
 
@@ -36,11 +28,9 @@ def perform_cdscheck(domain):
 
     response = httpx.get(f'https://{rdap_source}/domain/{domain}')
     if response.status_code == 404:
-        log.error(f'Could not find domain {domain} in RDAP')
-        raise NameError()
+        raise NameError(f'Could not find domain {domain} in RDAP')
     elif response.status_code != 200:
-        log.error(f'Unexpected status code {response.status_code} for domain {domain} in RDAP')
-        raise RuntimeError()
+        raise RuntimeError(f'Unexpected status code {response.status_code} for domain {domain} in RDAP')
     rdaps.append(response.json())
 
     for link in rdaps[-1]['links']:
@@ -59,11 +49,9 @@ def perform_cdscheck(domain):
         if related:
             response = httpx.get(related)
             if response.status_code == 404:
-                log.error(f'Domain not found at related RDAP URL {related}')
-                raise NameError()
+                raise NameError(f'Domain not found at related RDAP URL {related}')
             elif response.status_code != 200:
-                log.error(f'Unexpected status code {response.status_code} at related RDAP URL {related}')
-                raise RuntimeError()
+                raise RuntimeError(f'Unexpected status code {response.status_code} at related RDAP URL {related}')
             rdaps.append(response.json())
 
             for link in rdaps[-1]['links']:
@@ -72,17 +60,13 @@ def perform_cdscheck(domain):
                     break
 
     if not cdscheck:
-        log.error(f'Could not find cdscheck URL in RDAP for domain {domain}')
-        raise NameError()
+        raise NameError(f'Could not find cdscheck URL in RDAP for domain {domain}')
 
     response = httpx.put(cdscheck)
 
     if response.status_code == 401:
-        log.error(f'Unauthorized at cdscheck URL {cdscheck}')
-        raise ValueError()
+        raise ValueError(f'Unauthorized at cdscheck URL {cdscheck}')
     elif response.status_code == 404:
-        log.error(f'Domain not found at cdscheck URL {cdscheck}')
-        raise KeyError()
+        raise KeyError(f'Domain not found at cdscheck URL {cdscheck}')
     elif response.status_code != 200:
-        log.error(f'Unexpected status code {response.status_code} at cdscheck URL {cdscheck}')
-        raise RuntimeError()
+        raise RuntimeError(f'Unexpected status code {response.status_code} at cdscheck URL {cdscheck}')

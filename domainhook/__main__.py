@@ -2,9 +2,6 @@ import argparse
 import importlib.util
 import logging
 import signal
-import sys
-
-import fooster.web
 
 from domainhook import config
 
@@ -13,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description='serve up a domain webhook service')
     parser.add_argument('-a', '--address', dest='address', help='address to bind')
     parser.add_argument('-p', '--port', type=int, dest='port', help='port to bind')
+    parser.add_argument('-d', '--dir', dest='dir', help='directory to store information')
     parser.add_argument('-l', '--log', dest='log', help='log directory to use')
     parser.add_argument('config', help='config file to use')
 
@@ -23,6 +21,9 @@ def main():
 
     if args.port:
         config.addr = (config.addr[0], args.port)
+
+    if args.dir:
+        config.dir = args.dir
 
     if args.log:
         if args.log == 'none':
@@ -36,11 +37,15 @@ def main():
     config_loaded = importlib.util.module_from_spec(config_spec)
     config_spec.loader.exec_module(config_loaded)
 
-    config.base = config_loaded.base
-    if not config.base.startswith('/'):
-        config.base = '/' + config.base
-    if not config.base.endswith('/'):
-        config.base = config.base + '/'
+    if hasattr(config_loaded, 'expire'):
+        config.expire = config_loaded.expire
+
+    if hasattr(config_loaded, 'base'):
+        config.base = config_loaded.base
+        if not config.base.startswith('/'):
+            config.base = '/' + config.base
+        if not config.base.endswith('/'):
+            config.base = config.base + '/'
 
     if hasattr(config_loaded, 'smtp_tls'):
         config.smtp_tls = config_loaded.smtp_tls
@@ -67,25 +72,14 @@ def main():
     config.dnsimple_token = config_loaded.dnsimple_token
     config.dnsimple_webhook = config_loaded.dnsimple_webhook
 
-
-    # setup logging
-    log = logging.getLogger('domainhook')
-    log.setLevel(logging.INFO)
-    if config.log:
-        log.addHandler(logging.FileHandler(config.log))
-    else:
-        log.addHandler(logging.StreamHandler(sys.stdout))
-
-    if config.http_log:
-        http_log_handler = logging.FileHandler(config.http_log)
-        http_log_handler.setFormatter(fooster.web.HTTPLogFormatter())
-
-        logging.getLogger('http').addHandler(http_log_handler)
+    config._apply()
 
 
     from domainhook import __version__
     from domainhook import http
 
+
+    log = logging.getLogger('domainhook')
 
     log.info('domainhook ' + __version__ + ' starting...')
 

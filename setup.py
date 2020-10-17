@@ -40,7 +40,7 @@ setup(
     license='MIT',
     author='Lily Foster',
     author_email='lily@lily.flowers',
-    install_requires=['fooster-web', 'httpx'],
+    install_requires=['fooster-web', 'fooster-db', 'httpx'],
     packages=find_packages(),
     entry_points={'console_scripts': ['domainhook = domainhook.__main__:main']},
 )
