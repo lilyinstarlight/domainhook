@@ -15,8 +15,6 @@ error_routes = {}
 
 log = logging.getLogger('domainhook')
 
-handled = None
-
 
 class DNSimpleWebhook(fooster.web.json.JSONHandler):
     def do_post(self):
