@@ -25,7 +25,7 @@ base = '/'
 # notification
 smtp_tls = None  # None, 'starttls', 'tls'
 smtp_host = 'localhost'
-smtp_port = 25
+smtp_port = 0
 smtp_user = ''
 smtp_password = ''
 
