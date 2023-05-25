@@ -39,25 +39,23 @@ def perform_cdscheck(domain):
             break
 
     if not cdscheck:
-        related = None
-
         for link in rdaps[-1]['links']:
             if link['rel'] == 'related':
-                related = link['href']
-                break
+                response = httpx.get(link['href'])
+                if response.status_code == 404:
+                    raise NameError(f'Domain not found at related RDAP URL {related}')
+                elif 300 <= response.status_code < 400:
+                    # ignore weird redirecting links
+                    continue
+                elif response.status_code != 200:
+                    raise RuntimeError(f'Unexpected status code {response.status_code} at related RDAP URL {related}')
 
-        if related:
-            response = httpx.get(related)
-            if response.status_code == 404:
-                raise NameError(f'Domain not found at related RDAP URL {related}')
-            elif response.status_code != 200:
-                raise RuntimeError(f'Unexpected status code {response.status_code} at related RDAP URL {related}')
-            rdaps.append(response.json())
+                rdaps.append(response.json())
 
-            for link in rdaps[-1]['links']:
-                if link['rel'] == 'https://rdap.io/tpda/cdscheck':
-                    cdscheck = link['href']
-                    break
+                for link in rdaps[-1]['links']:
+                    if link['rel'] == 'https://rdap.io/tpda/cdscheck':
+                        cdscheck = link['href']
+                        break
 
     if not cdscheck:
         raise NameError(f'Could not find cdscheck URL in RDAP for domain {domain}')
