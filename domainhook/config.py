@@ -51,6 +51,9 @@ rdap_sources = {
     '_': 'rdap.org',
 }
 
+# cdscheck endpoint format string
+cdscheck_endpoint = None
+
 # dnsimple integration
 dnsimple_token = '0123456789abcdefghijklmnopqrstuv'
 dnsimple_webhook = 'dnsimple'

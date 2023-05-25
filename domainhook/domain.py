@@ -21,22 +21,24 @@ def get_domain(account_id, domain_id):
 
 
 def perform_cdscheck(domain):
-    cdscheck = None
-    rdaps = []
+    cdscheck = config.cdscheck_endpoint.format(domain=domain)
 
-    rdap_source = config.rdap_sources.get(domain.rpartition('.')[2], config.rdap_sources['_'])
+    if not cds_check:
+        rdaps = []
 
-    response = httpx.get(f'https://{rdap_source}/domain/{domain}')
-    if response.status_code == 404:
-        raise NameError(f'Could not find domain {domain} in RDAP')
-    elif response.status_code != 200:
-        raise RuntimeError(f'Unexpected status code {response.status_code} for domain {domain} in RDAP')
-    rdaps.append(response.json())
+        rdap_source = config.rdap_sources.get(domain.rpartition('.')[2], config.rdap_sources['_'])
 
-    for link in rdaps[-1]['links']:
-        if link['rel'] == 'https://rdap.io/tpda/cdscheck':
-            cdscheck = link['href']
-            break
+        response = httpx.get(f'https://{rdap_source}/domain/{domain}')
+        if response.status_code == 404:
+            raise NameError(f'Could not find domain {domain} in RDAP')
+        elif response.status_code != 200:
+            raise RuntimeError(f'Unexpected status code {response.status_code} for domain {domain} in RDAP')
+        rdaps.append(response.json())
+
+        for link in rdaps[-1]['links']:
+            if link['rel'] == 'https://rdap.io/tpda/cdscheck':
+                cdscheck = link['href']
+                break
 
     if not cdscheck:
         for link in rdaps[-1]['links']:
@@ -44,9 +46,6 @@ def perform_cdscheck(domain):
                 response = httpx.get(link['href'])
                 if response.status_code == 404:
                     raise NameError(f'Domain not found at related RDAP URL {related}')
-                elif 300 <= response.status_code < 400:
-                    # ignore weird redirecting links
-                    continue
                 elif response.status_code != 200:
                     raise RuntimeError(f'Unexpected status code {response.status_code} at related RDAP URL {related}')
 

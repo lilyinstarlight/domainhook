@@ -64,6 +64,9 @@ def main():
     if hasattr(config_loaded, 'rdap_sources'):
         config.rdap_sources = config_loaded.rdap_sources
 
+    if hasattr(config_loaded, 'cdscheck_endpoint'):
+        config.cdscheck_endpoint = config_loaded.cdscheck_endpoint
+
     if hasattr(config_loaded, 'dnssec_subject'):
         config.dnssec_subject = config_loaded.dnssec_subject
     if hasattr(config_loaded, 'dnssec_message'):
