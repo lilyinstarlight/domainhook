@@ -23,7 +23,7 @@ def get_domain(account_id, domain_id):
 def perform_cdscheck(domain):
     cdscheck = config.cdscheck_endpoint.format(domain=domain)
 
-    if not cds_check:
+    if not cdscheck:
         rdaps = []
 
         rdap_source = config.rdap_sources.get(domain.rpartition('.')[2], config.rdap_sources['_'])
