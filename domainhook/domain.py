@@ -21,7 +21,8 @@ def get_domain(account_id, domain_id):
 
 
 def perform_cdscheck(domain):
-    cdscheck = config.cdscheck_endpoint.format(domain=domain)
+    if config.cdscheck_endpoint:
+        cdscheck = config.cdscheck_endpoint.format(domain=domain)
 
     if not cdscheck:
         rdaps = []
@@ -33,6 +34,7 @@ def perform_cdscheck(domain):
             raise NameError(f'Could not find domain {domain} in RDAP')
         elif response.status_code != 200:
             raise RuntimeError(f'Unexpected status code {response.status_code} for domain {domain} in RDAP')
+
         rdaps.append(response.json())
 
         for link in rdaps[-1]['links']:
@@ -42,24 +44,33 @@ def perform_cdscheck(domain):
 
     if not cdscheck:
         for link in rdaps[-1]['links']:
-            if link['rel'] == 'related':
-                response = httpx.get(link['href'])
-                if response.status_code == 404:
-                    raise NameError(f'Domain not found at related RDAP URL {related}')
-                elif response.status_code != 200:
-                    raise RuntimeError(f'Unexpected status code {response.status_code} at related RDAP URL {related}')
+            try:
+                if link['rel'] == 'related' and link['type'] == 'application/rdap+json':
+                    response = httpx.get(link['href'])
+                    if response.status_code == 404:
+                        raise NameError(f'URL not found at related RDAP URL {link["href"]}')
+                    elif response.status_code != 200:
+                        raise RuntimeError(f'Unexpected status code {response.status_code} at related RDAP URL {link["href"]}')
 
-                rdaps.append(response.json())
+                    rdaps.append(response.json())
 
-                for link in rdaps[-1]['links']:
-                    if link['rel'] == 'https://rdap.io/tpda/cdscheck':
-                        cdscheck = link['href']
-                        break
+                    for link in rdaps[-1]['links']:
+                        if link['rel'] == 'https://rdap.io/tpda/cdscheck':
+                            cdscheck = link['href']
+                            break
+            except Exception:
+                log.exception('Failure performing RDAP related URL lookup')
+
 
     if not cdscheck:
         raise NameError(f'Could not find cdscheck URL in RDAP for domain {domain}')
 
     response = httpx.put(cdscheck)
+
+    cds_response = response.json()
+    if cds_response:
+        if 'errors' in cds_response and len(cds_response['errors']) > 0:
+            raise RuntimeError(f'Unexpected cdscheck errors {cds_response["errors"]!r} at cdscheck URL {cdscheck}')
 
     if response.status_code == 401:
         raise ValueError(f'Unauthorized at cdscheck URL {cdscheck}')
