@@ -4,7 +4,7 @@ import logging
 import fooster.web
 import fooster.web.json
 
-from domainhook import config, domain, notify, request
+from domainhook import config, domain, notify, porkbun, request
 
 
 http = None
@@ -27,6 +27,17 @@ class DNSimpleWebhook(fooster.web.json.JSONHandler):
         if self.request.body['name'] == 'dnssec.rotation_start':
             try:
                 account_id, domain_id = self.request.body['account']['id'], self.request.body['data']['delegation_signer_record']['domain_id']
+
+                dnssec_data = {
+                    'key_tag': self.request.body['data']['delegation_signer_record']['keytag'],
+                    'algorithm': self.request.body['data']['delegation_signer_record']['algorithm'],
+                    'digest_type': self.request.body['data']['delegation_signer_record']['digest_type'],
+                    'digest': self.request.body['data']['delegation_signer_record']['digest'],
+                    'key_data_flags': 257,
+                    'key_data_protocol': 3,
+                    'key_data_algorithm': self.request.body['data']['delegation_signer_record']['algorithm'],
+                    'key_data_public_key': self.request.body['data']['delegation_signer_record']['public_key'],
+                }
             except KeyError:
                 raise fooster.web.HTTPError(400)
 
@@ -39,25 +50,43 @@ class DNSimpleWebhook(fooster.web.json.JSONHandler):
                 log.exception('Error performing domain lookup')
                 raise fooster.web.HTTPError(500)
 
-            try:
-                domain.perform_cdscheck(dname)
-            except (NameError, ValueError, KeyError) as err:
-                log.exception('Failure performing CDS check')
+            if config.porkbun_api_key and config.porkbun_secret_key:
                 try:
-                    notify.send_failure(dname, self.request.body['name'], str(err))
-                except OSError:
-                    log.exception('Failed to send failure notification')
-                raise fooster.web.HTTPError(404)
-            except RuntimeError as err:
-                log.exception('Error performing CDS check')
+                    porkbun.perform_rotation(dname, dnssec_data)
+                except (NameError, ValueError, KeyError) as err:
+                    log.exception('Failure performing Porkbun rotation')
+                    try:
+                        notify.send_failure(dname, self.request.body['name'], str(err))
+                    except OSError:
+                        log.exception('Failed to send failure notification')
+                    raise fooster.web.HTTPError(404)
+                except RuntimeError as err:
+                    log.exception('Error performing Porkbun rotation')
+                    try:
+                        notify.send_failure(dname, self.request.body['name'], str(err))
+                    except OSError:
+                        log.exception('Failed to send failure notification')
+                    raise fooster.web.HTTPError(500)
+            else:
                 try:
-                    notify.send_failure(dname, self.request.body['name'], str(err))
-                except OSError:
-                    log.exception('Failed to send failure notification')
-                raise fooster.web.HTTPError(500)
+                    domain.perform_cdscheck(dname)
+                except (NameError, ValueError, KeyError) as err:
+                    log.exception('Failure performing CDS check')
+                    try:
+                        notify.send_failure(dname, self.request.body['name'], str(err))
+                    except OSError:
+                        log.exception('Failed to send failure notification')
+                    raise fooster.web.HTTPError(404)
+                except RuntimeError as err:
+                    log.exception('Error performing CDS check')
+                    try:
+                        notify.send_failure(dname, self.request.body['name'], str(err))
+                    except OSError:
+                        log.exception('Failed to send failure notification')
+                    raise fooster.web.HTTPError(500)
 
             try:
-                notify.send_dnssec(dname, self.request.body['data']['delegation_signer_record']['keytag'], self.request.body['data']['delegation_signer_record']['algorithm'], self.request.body['data']['delegation_signer_record']['digest_type'], self.request.body['data']['delegation_signer_record']['digest'])
+                notify.send_dnssec(dname, dnssec_data)
             except OSError:
                 log.exception('Failed to send DNSSEC key rotation notification')
 

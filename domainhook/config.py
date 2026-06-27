@@ -36,7 +36,7 @@ dnssec_subject = 'DNSSEC Key Rotated for {domain}'
 dnssec_message = '''
 Rotated key at registrar for {domain}. New key:
 
-{domain} IN DS {keytag} {algorithm} {digest_type} {digest}
+{domain} IN DS {key_tag} {algorithm} {digest_type} {digest}
 '''
 
 failure_subject = 'Webhook Failure for {domain}'
@@ -53,6 +53,10 @@ rdap_sources = {
 
 # cdscheck endpoint format string
 cdscheck_endpoint = None
+
+# porkbun integration (replaces/excludes cdscheck functionality)
+porkbun_api_key = None
+porkbun_secret_key = None
 
 # dnsimple integration
 dnsimple_token = '0123456789abcdefghijklmnopqrstuv'

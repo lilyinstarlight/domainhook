@@ -6,8 +6,8 @@ import email.mime.text
 from domainhook import config
 
 
-def send_dnssec(domain, keytag, algorithm, digest_type, digest):
-    send(config.dnssec_subject.format(domain=domain, keytag=keytag, algorithm=algorithm, digest_type=digest_type, digest=digest), config.dnssec_message.format(domain=domain, keytag=keytag, algorithm=algorithm, digest_type=digest_type, digest=digest))
+def send_dnssec(domain, dnssec_data):
+    send(config.dnssec_subject.format(domain=domain, **dnssec_data), config.dnssec_message.format(domain=domain, **dnssec_data))
 
 
 def send_failure(domain, action, message):
