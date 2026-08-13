@@ -26,7 +26,7 @@ class DNSimpleWebhook(fooster.web.json.JSONHandler):
 
         if self.request.body['name'] == 'dnssec.rotation_start':
             try:
-                account_id, domain_id = self.request.body['account']['id'], self.request.body['data']['delegation_signer_record']['domain_id']
+                account_id, domain_id = self.request.body['account']['id'], self.request.body['data']['zone']['id']
 
                 dnssec_data = {
                     'key_tag': self.request.body['data']['delegation_signer_record']['keytag'],
