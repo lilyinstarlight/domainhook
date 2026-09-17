@@ -3,19 +3,19 @@ import httpx
 from domainhook import config
 
 
-def get_domain(account_id, domain_id):
+def get_domain(account_id, zone_id):
     headers = {
         'accept': 'application/json',
         'authorization': f'Bearer {config.dnsimple_token}',
     }
-    response = httpx.get(f'https://api.dnsimple.com/v2/{account_id}/domains/{domain_id}', headers=headers)
+    response = httpx.get(f'https://api.dnsimple.com/v2/{account_id}/zones/{zone_id}', headers=headers)
 
     if response.status_code == 401:
-        raise ValueError(f'Authorization failed for domain {domain_id} on account {account_id}')
+        raise ValueError(f'Authorization failed for domain with zone {zone_id} on account {account_id}')
     elif response.status_code == 404:
-        raise KeyError(f'Domain {domain_id} on account {account_id} not found')
+        raise KeyError(f'Domain with zone {zone_id} on account {account_id} not found')
     elif response.status_code != 200:
-        raise RuntimeError(f'Unexpected status code {response.status_code} for domain {domain_id} on account {account_id}')
+        raise RuntimeError(f'Unexpected status code {response.status_code} for domain with zone {zone_id} on account {account_id}')
 
     return response.json()['data']['name']
 

@@ -26,7 +26,7 @@ class DNSimpleWebhook(fooster.web.json.JSONHandler):
 
         if self.request.body['name'] == 'dnssec.rotation_start':
             try:
-                account_id, domain_id = self.request.body['account']['id'], self.request.body['data']['zone']['id']
+                account_id, zone_id = self.request.body['account']['id'], self.request.body['data']['zone']['id']
 
                 dnssec_data = {
                     'key_tag': self.request.body['data']['delegation_signer_record']['keytag'],
@@ -42,7 +42,7 @@ class DNSimpleWebhook(fooster.web.json.JSONHandler):
                 raise fooster.web.HTTPError(400)
 
             try:
-                dname = domain.get_domain(account_id, domain_id)
+                dname = domain.get_domain(account_id, zone_id)
             except (ValueError, KeyError):
                 log.exception('Failure performing domain lookup')
                 raise fooster.web.HTTPError(404)
