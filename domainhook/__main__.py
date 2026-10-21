@@ -61,16 +61,26 @@ def main():
     config.sender = config_loaded.sender
     config.recipient = config_loaded.recipient
 
+    if hasattr(config_loaded, 'dnssec_subject'):
+        config.dnssec_subject = config_loaded.dnssec_subject
+    if hasattr(config_loaded, 'dnssec_message'):
+        config.dnssec_message = config_loaded.dnssec_message
+
+    if hasattr(config_loaded, 'failure_subject'):
+        config.failure_subject = config_loaded.failure_subject
+    if hasattr(config_loaded, 'failure_message'):
+        config.failure_message = config_loaded.failure_message
+
     if hasattr(config_loaded, 'rdap_sources'):
         config.rdap_sources = config_loaded.rdap_sources
 
     if hasattr(config_loaded, 'cdscheck_endpoint'):
         config.cdscheck_endpoint = config_loaded.cdscheck_endpoint
 
-    if hasattr(config_loaded, 'dnssec_subject'):
-        config.dnssec_subject = config_loaded.dnssec_subject
-    if hasattr(config_loaded, 'dnssec_message'):
-        config.dnssec_message = config_loaded.dnssec_message
+    if hasattr(config_loaded, 'porkbun_api_key'):
+        config.porkbun_api_key = config_loaded.porkbun_api_key
+    if hasattr(config_loaded, 'porkbun_secret_key'):
+        config.porkbun_secret_key = config_loaded.porkbun_secret_key
 
     config.dnsimple_token = config_loaded.dnsimple_token
     config.dnsimple_webhook = config_loaded.dnsimple_webhook
